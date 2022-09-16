@@ -50,7 +50,7 @@ def scanAndPlot(step = 18):
         while angle <= end:
             tryAgainCount = 3
             dist = fc.get_distance_at(angle)
-            time.sleep(5)
+            time.sleep(.5)
             # while dist == -2:
             #     dist = fc.get_distance_at(angle)
             if (dist > 0):
@@ -62,6 +62,7 @@ def scanAndPlot(step = 18):
                     if (dist >= 0):
                         readings.append((angle, dist))
                         break
+                # WHAT ABOUT IF IT CONTINUES TO FAIL?
             angle += step
         # print("Scan readings: " + str(readings))
         printReadings(readings)
@@ -111,7 +112,7 @@ def euclidDist(p1, p2):
 # calculate the distance between two points
 # if the number falls under an object detection threshold return true, else false
 def identifyObstacles(p1, p2):
-    objectDetectionThreshold = 0
+    objectDetectionThreshold = 20
 
 
 scanAndPlot()
