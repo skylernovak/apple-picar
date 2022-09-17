@@ -52,6 +52,8 @@ def scanAndPlot(step = 18):
         # get distance between points
         # if there is an object, plot into map
             # how to plot to map?
+            # use logic from print for loop above
+            # will have 2 points, pass both to plot_XY(p1, p2)   
         
     except Exception as e:
         fc.stop()
@@ -81,8 +83,9 @@ def get_XY(polarCord):
 def plot_XY(cordinates, map):
     x = cordinates[0]
     y = cordinates[1]
-    npMap = np.zeros((100, 100))
-    npMap[x, y]
+    npMap = np.zeros((100, 100)) # move to gloabl variables?
+    npMap[x, y] # = 1?
+    # fill in all values in between with 1, or add logic to fill boxes
 
 # return the distance between 2 points 
 def euclidDist(p1, p2):
