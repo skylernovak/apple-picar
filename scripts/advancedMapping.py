@@ -34,7 +34,8 @@ def scanAndPlot(step = 18):
                     if (dist >= 0):
                         readings.append((angle, dist))
                         break
-                # WHAT ABOUT IF IT CONTINUES TO FAIL?
+                if (readings.index(len(readings))[1] < 0): # if a distance was not found, assume no object is there
+                    readings.append((angle, 100))
             angle += step
         # print("Scan readings: " + str(readings))
         printReadings(readings)
@@ -48,7 +49,9 @@ def scanAndPlot(step = 18):
         for i in range(0, len(readings)-1):
             print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
 
-        
+        # get distance between points
+        # if there is an object, plot into map
+            # how to plot to map?
         
     except Exception as e:
         fc.stop()
