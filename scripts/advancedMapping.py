@@ -7,6 +7,7 @@ print("Advanced Mapping")
 
 # global variables
 us = fc.Ultrasonic(fc.Pin('D8'), fc.Pin('D9'))
+npMap = np.zeros((100, 100))
 
 # Picar scans it's environment. 
 # @param step: degrees it steps between readings of ultrasonic sensor
@@ -31,11 +32,12 @@ def scanAndPlot(step = 18):
                 while (tryAgainCount > 0):
                     dist = fc.get_distance_at(angle)
                     tryAgainCount -= 1
+                    print("Angle: " + str(angle))
                     if (dist >= 0):
                         readings.append((angle, dist))
                         break
-                if (readings.index(len(readings))[1] < 0): # if a distance was not found, assume no object is there
-                    readings.append((angle, 100))
+                # if (readings.index(len(readings))[1] < 0): # if a distance was not found, assume no object is there
+                #     readings.append((angle, 100))
             angle += step
         # print("Scan readings: " + str(readings))
         printReadings(readings)
@@ -53,8 +55,14 @@ def scanAndPlot(step = 18):
         # if there is an object, plot into map
             # how to plot to map?
             # use logic from print for loop above
-            # will have 2 points, pass both to plot_XY(p1, p2)   
-        
+            # will have 2 points, pass both to plot_XY(p1, p2)
+        for i in range(0, len(readings)-1):
+            if (identifyObstacles(readings[i], readings[i+1])):
+                plotNoDriveZone(readings[i], readings[i+1])
+
+        # print npMap
+
+
     except Exception as e:
         fc.stop()
         print("ERROR: " + str(e))
@@ -79,14 +87,25 @@ def get_XY(polarCord):
     y = round(r * math.sin(math.radians(theta)))
     return (x, y)
 
-# plot (x, y) coordinates into map
+# plot (x, y) coordinates into map  --  depreciated?
 def plot_XY(cordinates, map):
     x = cordinates[0]
     y = cordinates[1]
-    npMap = np.zeros((100, 100)) # move to gloabl variables?
-    npMap[x, y] # = 1?
-    # fill in all values in between with 1, or add logic to fill boxes
+    npMap[x, y] = 1
 
+# point 1 and point 2 are two opposite corners of a no drive zone. Fill zone with 1s
+def plotNoDriveZone(p1, p2):
+    x1 = p1[0]
+    y1 = p1[1]
+    x2 = p2[0]
+    y2 = p2[1]
+    for i in range(x1, x2):
+        for j in range(y1, y2):
+            npMap[i, j] = 1;
+
+# def printMap():
+#     # for i in 100
+    
 # return the distance between 2 points 
 def euclidDist(p1, p2):
     return round(math.sqrt((p2[0] - p1[0])**2+(p2[1] - p1[1])**2), 2)
