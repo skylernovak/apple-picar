@@ -32,12 +32,11 @@ def scanAndPlot(step = 18):
                 while (tryAgainCount > 0):
                     dist = fc.get_distance_at(angle)
                     tryAgainCount -= 1
-                    print("Angle: " + str(angle))
                     if (dist >= 0):
                         readings.append((angle, dist))
                         break
-                # if (readings.index(len(readings))[1] < 0): # if a distance was not found, assume no object is there
-                #     readings.append((angle, 100))
+                if (dist < 0): # if a distance was not found, assume no object is there
+                    readings.append((angle, 100))
             angle += step
         # print("Scan readings: " + str(readings))
         printReadings(readings)
@@ -48,17 +47,22 @@ def scanAndPlot(step = 18):
         print("ploting objects to map...")
 
         # print euclidian distance between points for debugging
-        for i in range(0, len(readings)-1):
-            print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
+        # for i in range(0, len(readings)-1):
+        #     print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
 
         # get distance between points
         # if there is an object, plot into map
             # how to plot to map?
             # use logic from print for loop above
             # will have 2 points, pass both to plot_XY(p1, p2)
+        polarToCart(readings)
+        print("flag")
         for i in range(0, len(readings)-1):
-            if (identifyObstacles(readings[i], readings[i+1])):
-                plotNoDriveZone(readings[i], readings[i+1])
+            print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
+            # if (identifyObstacles(readings[i], readings[i+1])):
+            #     # print("object detected")
+            #     plotNoDriveZone(readings[i], readings[i+1])
+            #     # still need to plot objects seen in distance
 
         # print npMap
 
@@ -118,6 +122,11 @@ def identifyObstacles(p1, p2):
         return True;
     else:
         return False;
+
+# convert readings (angle, dist) to (x, y)
+def polarToCart(readings):
+    for i in readings:
+        readings[i] = get_XY(readings[i])
 
 
 scanAndPlot()
