@@ -8,32 +8,6 @@ print("Advanced Mapping")
 # global variables
 us = fc.Ultrasonic(fc.Pin('D8'), fc.Pin('D9'))
 
-#reference
-def func1():
-    try:
-        speed4 = fc.Speed(25)
-        speed4.start()
-        x = 0
-        fc.forward(10)
-        for i in range(20):
-            time.time.sleep(0.1)
-            speed = speed4()
-            x += speed * .01
-            dist = fc.get_distance_at(0)
-            if dist < 30:
-                fc.stop()
-                fc.backward(10)
-            elif dist > 30:
-                fc.stop()
-                fc.forward(10) 
-            print(fc.get_distance_at(0))
-        print(x)
-        speed4.deinit()
-        fc.stop()
-    except Exception as e:
-        fc.stop()
-        print("ERROR: " + e)
-
 # Picar scans it's environment. 
 # @param step: degrees it steps between readings of ultrasonic sensor
 def scanAndPlot(step = 18):
@@ -50,9 +24,7 @@ def scanAndPlot(step = 18):
         while angle <= end:
             tryAgainCount = 3
             dist = fc.get_distance_at(angle)
-            time.sleep(.5)
-            # while dist == -2:
-            #     dist = fc.get_distance_at(angle)
+            time.sleep(.5)  # give servo time to move into position before taking ultrasonic reading
             if (dist > 0):
                 readings.append((angle, dist))
             else: # If ultrasonic has distance reading exception, try 3 times
@@ -71,8 +43,12 @@ def scanAndPlot(step = 18):
         ### PLOT ###
 
         print("ploting objects to map...")
+
+        # print euclidian distance between points for debugging
         for i in range(0, len(readings)-1):
             print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
+
+        
         
     except Exception as e:
         fc.stop()
@@ -113,6 +89,10 @@ def euclidDist(p1, p2):
 # if the number falls under an object detection threshold return true, else false
 def identifyObstacles(p1, p2):
     objectDetectionThreshold = 20
+    if (euclidDist(p1, p2) <= objectDetectionThreshold):
+        return True;
+    else:
+        return False;
 
 
 scanAndPlot()
