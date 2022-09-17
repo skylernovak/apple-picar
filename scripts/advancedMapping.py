@@ -1,8 +1,11 @@
+## see line 34 to continue. Also trying to verify plotToFarObnject works, and print to csv file works as expected
+
 import picar_4wd as fc
 #import obstacleAvoidance as manuver
 import time
 import math
 import numpy as np
+import pandas as pd
 print("Advanced Mapping")
 
 # global variables
@@ -26,8 +29,10 @@ def scanAndPlot(step = 18):
             tryAgainCount = 3
             dist = fc.get_distance_at(angle)
             time.sleep(.5)  # give servo time to move into position before taking ultrasonic reading
-            if (dist > 0):
+            if (dist > 0 and dist < 100):
                 readings.append((angle, dist))
+            elif (dist > 100): # Not sure this is needed. Currently getting error ERROR: index 109 is out of bounds for axis 0 with size 100
+                readings.append((angle, 100))
             else: # If ultrasonic has distance reading exception, try 3 times
                 while (tryAgainCount > 0):
                     dist = fc.get_distance_at(angle)
@@ -86,14 +91,17 @@ def printXY_Readings(readings):
 
 # Print the numpy Map of obstacles
 def print_npMap():
-    np.set_printoptions(threshold=np.inf)
-    print(npMap);
+    # np.set_printoptions(threshold=np.inf)
+    # print(npMap);
+    # np.savetxt("nmMap.csv", npMap, delimiter=",")
+    csvMap = npMap.astype(int)
+    pd.DataFrame(csvMap).to_csv("npMap.csv", header=None, index=None)
 
 #convert polar coordinates to cartesian coordinates
 def get_XY(polarCord):
     theta = polarCord[0] + 90
     r = polarCord[1]
-    x = round(r * math.cos(math.radians(theta)))
+    x = round(r * math.cos(math.radians(theta))) + 50
     y = round(r * math.sin(math.radians(theta)))
     return (x, y)
 
@@ -109,8 +117,8 @@ def plotNoDriveZone(p1, p2):
     y1 = p1[1]
     x2 = p2[0]
     y2 = p2[1]
-    for i in range(x1, x2):
-        for j in range(y1, y2):
+    for i in range(min(x1, x2), max(x1, x2)):
+        for j in range(min(y1, y2), max(y1, y2)):
             npMap[i, j] = 1;
     
 # return the distance between 2 points 
@@ -125,6 +133,19 @@ def identifyObstacles(p1, p2):
         return True;
     else:
         return False;
+
+# plot distance object onto map. Add buffer. fill with 1s
+def plotFarObject(obj):
+    x = obj[0]
+    y = obj[1]
+    if (x == 0 or x == 99 or y == 0 or y == 99):
+        print("plotFarObject warning: index out of bounds")
+    for i in range(x-1, x+1):
+        for j in range(y-1, y+1):
+            npMap[i, j] = 1;
+    
+
+
 
 # convert readings (angle, dist) to (x, y)
 def polarToCart(readings):
