@@ -55,15 +55,16 @@ def scanAndPlot(step = 18):
             # how to plot to map?
             # use logic from print for loop above
             # will have 2 points, pass both to plot_XY(p1, p2)
-        polarToCart(readings)
-        print("flag")
+        readings = polarToCart(readings)
         for i in range(0, len(readings)-1):
             print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
-            # if (identifyObstacles(readings[i], readings[i+1])):
-            #     # print("object detected")
-            #     plotNoDriveZone(readings[i], readings[i+1])
+            if (identifyObstacles(readings[i], readings[i+1])):
+                print("object detected")
+                # print("readings[i]: " + str(readings[i]))
+                # print("readings[i+1]: " + str(readings[i+1]))
+                plotNoDriveZone(readings[i], readings[i+1])
             #     # still need to plot objects seen in distance
-
+        print_npMap();
         # print npMap
 
 
@@ -82,6 +83,11 @@ def printXY_Readings(readings):
     print("\n\t(X, Y)");
     for i in readings:
         print("\t" + str(get_XY(i)))
+
+# Print the numpy Map of obstacles
+def print_npMap():
+    np.set_printoptions(threshold=np.inf)
+    print(npMap);
 
 #convert polar coordinates to cartesian coordinates
 def get_XY(polarCord):
@@ -106,9 +112,6 @@ def plotNoDriveZone(p1, p2):
     for i in range(x1, x2):
         for j in range(y1, y2):
             npMap[i, j] = 1;
-
-# def printMap():
-#     # for i in 100
     
 # return the distance between 2 points 
 def euclidDist(p1, p2):
@@ -125,8 +128,7 @@ def identifyObstacles(p1, p2):
 
 # convert readings (angle, dist) to (x, y)
 def polarToCart(readings):
-    for i in readings:
-        readings[i] = get_XY(readings[i])
+    return[get_XY(i) for i in readings]
 
 
 scanAndPlot()
