@@ -6,13 +6,14 @@ import time
 import math
 import numpy as np
 import pandas as pd
+import python_astar as astar
 print("Advanced Mapping")
 
 # global variables
 us = fc.Ultrasonic(fc.Pin('D8'), fc.Pin('D9'))
 npMap = np.zeros((100, 100))
 
-# Picar scans it's environment. 
+# Picar scans it's environment & plots to numpy Map
 # @param step: degrees it steps between readings of ultrasonic sensor
 def scanAndPlot(step = 18):
     try:
@@ -43,39 +44,37 @@ def scanAndPlot(step = 18):
                 if (dist < 0): # if a distance was not found, assume no object is there
                     readings.append((angle, 100))
             angle += step
-        # print("Scan readings: " + str(readings))
-        printReadings(readings)
-        printXY_Readings(readings)
+        # printReadings(readings)
+        # printXY_Readings(readings)
 
         ### PLOT ###
-
         print("ploting objects to map...")
 
         # print euclidian distance between points for debugging
         # for i in range(0, len(readings)-1):
         #     print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
 
-        # get distance between points
-        # if there is an object, plot into map
-            # how to plot to map?
-            # use logic from print for loop above
-            # will have 2 points, pass both to plot_XY(p1, p2)
+        # get distance between points, if there is an object, plot into map
         readings = polarToCart(readings)
         for i in range(0, len(readings)-1):
-            print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
+            # print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
             if (identifyObstacles(readings[i], readings[i+1])):
                 print("object detected")
-                # print("readings[i]: " + str(readings[i]))
-                # print("readings[i+1]: " + str(readings[i+1]))
-                plotNoDriveZone(readings[i], readings[i+1])
-            #     # still need to plot objects seen in distance
-        print_npMap();
-        # print npMap
+                plotNoDriveZone(readings[i], readings[i+1], 4)
+        csvMap = npMap.astype(int)
+        # print_npMap(csvMap)
+        # coords = astar.a_star_alg((50, 0), (65,10), 'manhattan', csvMap)
 
+        # #4: generate ordered list of actions
+        # actionQueue = astar.actions(coords)
+        # print(actionQueue)
 
+        return csvMap
+        
     except Exception as e:
         fc.stop()
         print("ERROR: " + str(e))
+
 
 # print readings from Ultrasonic sensor & format them
 def printReadings(readings):
@@ -90,12 +89,9 @@ def printXY_Readings(readings):
         print("\t" + str(get_XY(i)))
 
 # Print the numpy Map of obstacles
-def print_npMap():
-    # np.set_printoptions(threshold=np.inf)
-    # print(npMap);
-    # np.savetxt("nmMap.csv", npMap, delimiter=",")
-    csvMap = npMap.astype(int)
-    pd.DataFrame(csvMap).to_csv("npMap.csv", header=None, index=None)
+def print_npMap(csvMap):
+    # np.savetxt("data/npMap.csv", csvMap, delimiter=",")
+    pd.DataFrame(csvMap).to_csv("data/npMap.csv", header=None, index=None)
 
 #convert polar coordinates to cartesian coordinates
 def get_XY(polarCord):
@@ -112,14 +108,18 @@ def plot_XY(cordinates, map):
     npMap[x, y] = 1
 
 # point 1 and point 2 are two opposite corners of a no drive zone. Fill zone with 1s
-def plotNoDriveZone(p1, p2):
+def plotNoDriveZone(p1, p2, buffer):
     x1 = p1[0]
     y1 = p1[1]
     x2 = p2[0]
     y2 = p2[1]
-    for i in range(min(x1, x2), max(x1, x2)):
-        for j in range(min(y1, y2), max(y1, y2)):
-            npMap[i, j] = 1;
+    minX = max(min(x1, x2) - buffer, 0)
+    maxX = min(max(x1, x2) + buffer, 99)
+    minY = max(min(y1, y2) - buffer, 0)
+    maxY = min(max(y1, y2) + buffer, 99)
+    for i in range(minX, maxX):
+        for j in range(minY, maxY):
+            npMap[i, j] = 1
     
 # return the distance between 2 points 
 def euclidDist(p1, p2):
@@ -144,12 +144,8 @@ def plotFarObject(obj):
         for j in range(y-1, y+1):
             npMap[i, j] = 1;
     
-
-
-
 # convert readings (angle, dist) to (x, y)
 def polarToCart(readings):
     return[get_XY(i) for i in readings]
 
-
-scanAndPlot()
+# scanAndPlot()

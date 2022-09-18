@@ -11,7 +11,7 @@ class Direction(Enum):
 
     
 
-def h(pos, target):
+def h(pos, target, npMap):
     if npMap[pos[0], pos[1]]:
         return (float(inf), float(inf))
     #Euclidean
@@ -21,19 +21,7 @@ def h(pos, target):
     return (eucl, manh)
 
 
-npMap = np.zeros((100, 100))
-
-npMap[6,6] = 1
-npMap[6,5] = 1
-npMap[5,6] = 1
-npMap[3,2] = 1
-npMap[3,3] = 1
-npMap[3,0] = 1
-npMap[0,3] = 1
-
-tar = (95, 95)
-
-def a_star_alg(start, end, heuristic):
+def a_star_alg(start, end, heuristic, npMap):
     if heuristic == "manhattan":
         h_index = 1
     else :
@@ -59,7 +47,7 @@ def a_star_alg(start, end, heuristic):
         
         # find a node with the lowest value of f() - evaluation function
         for v in open_list:
-            if curr == None or g[v] + h(v, end)[h_index] < g[curr] + h(curr, end)[h_index]:
+            if curr == None or g[v] + h(v, end, npMap)[h_index] < g[curr] + h(curr, end, npMap)[h_index]:
                 curr = v
         
         if curr == None:
@@ -72,10 +60,10 @@ def a_star_alg(start, end, heuristic):
             reconst_path = []
 
             while parents[curr] != curr:
-                reconst_path.append(curr)
+                reconst_path.append((curr[0] - 50, curr[1]))
                 curr = parents[curr]
 
-            reconst_path.append(start)
+            reconst_path.append((start[0] - 50, start[1]))
 
             reconst_path.reverse()
 
@@ -115,20 +103,6 @@ def a_star_alg(start, end, heuristic):
         open_list.remove(curr)
         closed_list.add(curr)
 
-
-
-
-
-
-# go_forward()
-
-# turn_left()
-
-# turn_right()
-
-# car_dir = 
-
-
 def next_dir(start, end):
     y = end[1] - start[1]
     x = end[0] - start[0]
@@ -143,17 +117,17 @@ def next_dir(start, end):
     else:
         raise Exception("next_dir failed for start:{0} and end:{1}".format(start, end))
 
-# print(next_dir((5,5), (5,6)))
-# print(Direction.UP.value - Direction.LEFT.value)
-# print(Direction.RIGHT.value - Direction.UP.value)
-
-
 
 turn_Map = {270: Direction.RIGHT, 90: Direction.LEFT, 0: Direction.UP, 180: Direction.DOWN}
 
+
+curr_dir = Direction.UP
+
+coords = [(0,0), (0, -1), (-1, -1), (-1, -2)]
+
+
 def actions(coords):
-    curr_dir = Direction.UP
-    print(coords)
+    global curr_dir
     action_list = []
     for i in range(0, len(coords)-1):
         start= coords[i]
@@ -162,12 +136,30 @@ def actions(coords):
         turn_action = turn_Map[(new_dir.value - curr_dir.value + 360)% 360]
         curr_dir = new_dir
         if (turn_action == Direction.RIGHT):
-            action_list.append("RIGHT")
+            action_list.append(["RIGHT", "FORWARD"])
         elif (turn_action == Direction.LEFT):
-            action_list.append("LEFT")
-        action_list.append("FORWARD")
+            action_list.append(["LEFT", "FORWARD"])
+        elif (turn_action == Direction.DOWN):
+            action_list.append(["LEFT", "LEFT", "FORWARD"])
+        else :
+            action_list.append(["FORWARD"])
     return action_list
-        
+
+def resetToNorth():
+    global curr_dir
+    new_dir = Direction.UP
+    curr_dir = Direction.UP
+    turn_action = turn_Map[(new_dir.value - curr_dir.value + 360)% 360]
+    actionList = []
+    if (turn_action == Direction.RIGHT):
+        actionList.append("RIGHT")
+    elif (turn_action == Direction.LEFT):
+        actionList.append("LEFT")
+    elif (turn_action == Direction.DOWN):
+        actionList.append("LEFT")
+        actionList.append("LEFT")
+    return actionList
+
+    
 
 
-print(actions(a_star_alg((5,5), (10,10), "manhattan")))
