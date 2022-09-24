@@ -4,70 +4,35 @@ import random
 print("testing")
 print(fc.get_distance_at(0))
 
-
-
-#reference
-def func1():
-    try:
-        speed4 = fc.Speed(25)
-        speed4.start()
-        x = 0
-        fc.forward(10)
-        for i in range(20):
-            time.sleep(0.1)
-            speed = speed4()
-            x += speed * .01
-            dist = fc.get_distance_at(0)
-            if dist < 30:
-                fc.stop()
-                fc.backward(10)
-            elif dist > 30:
-                fc.stop()
-                fc.forward(10) 
-            print(fc.get_distance_at(0))
-        print(x)
-        speed4.deinit()
-        fc.stop()
-    except Exception as e:
-        fc.stop()
-        print("ERROR: " + e)
-
-
-def backup(currTime, speed, backTime, interval):
+def backup(speed):
     fc.stop()
-    time.sleep(.5)
     fc.backward(speed)
-    print("backing up")
-    totalTime = currTime + backTime
-    while currTime < totalTime:
-        # print(currTime)
-        time.sleep(interval)
-        currTime += interval
+    time.sleep(.3)
     fc.stop()
-    return currTime
 
-def turn(currTime, speed, interval):
+def turn():
     fc.stop()
-    duration = 1 # how long it turns for
-    coin = random.choice([1, 2, 3])
-    print("turning")
-    if coin == 1:
-        fc.turn_left(speed)
+    if random.choice([1,2]) == 1:
+        turnRight()
     else:
-        fc.turn_right(speed)
-    print(duration)
-    totalTime = currTime + duration
-    while (currTime < totalTime):
-        time.sleep(interval)
-        # print("turning")
-        currTime += interval
+        turnLeft()
+
+
+def turnRight():
+    fc.turn_right(50)
+    time.sleep(1.0)
     fc.stop()
-    return currTime
+    
+
+def turnLeft():
+    fc.turn_left(50)
+    time.sleep(1.0)
+    fc.stop()
 
 def objectDetected():
     dist = fc.get_distance_at(0)
-    # print("Servo output: " + str(dist))
-    return(dist < 30 and dist > 0)
+    print("Servo output: " + str(dist))
+    return(dist < 20 and dist > 0)
 
 # main
 def environmentScanning(carSpeed, timer, interval):
@@ -78,7 +43,7 @@ def environmentScanning(carSpeed, timer, interval):
         #start forward movement
         fc.forward(carSpeed)
         x = 0
-        #perform actions every .1 second
+        #perform actions every (interval) seconds
         i = 0
         while i < timer:
             # print(i)
@@ -86,9 +51,9 @@ def environmentScanning(carSpeed, timer, interval):
             
             #detect objects in front
             if (objectDetected()):
-                # print("object detected")
-                i = backup(i, carSpeed/2, 1, interval)
-                i = turn(i, carSpeed/2, interval)
+                print("object detected")
+                backup(carSpeed/2)
+                turn()
                 fc.forward(carSpeed)
             i += interval
         print("Done driving")
@@ -98,38 +63,5 @@ def environmentScanning(carSpeed, timer, interval):
         fc.stop()
         print("ERROR: " + str(e))
         return
-    
 
-# environmentScanning(25 , 10, .1)
-# fc.stop()
-
-
-us = fc.Ultrasonic(fc.Pin('D8'), fc.Pin('D9'))
-
-
-def swivel():
-    start = -90
-    end = 90
-
-    curr = start
-
-    readings = []
-    while curr <= end:
-        #store reading then increment
-        fc.servo.set_angle(curr)
-        time.sleep(.5)
-        dist = us.get_distance()
-        # while dist == -2:
-        #     dist = fc.get_distance_at(curr)
-        readings.append([(curr, dist)])
-        curr+= 10
-    print(readings)
-        
-
-
-swivel()
-# print(fc.get_distance_at(-90))
-# print(fc.get_distance_at(-80))
-# print(fc.get_distance_at(0))
-# print(fc.get_distance_at(45))
-# print(fc.get_distance_at(90))
+environmentScanning(20, 6, .1)
