@@ -8,7 +8,7 @@ import sys
 #globals
 
 #distance counter
-distTilNextScan = 25
+distTilNextScan = 20
 
 #total distance traveled in x and y directions
 currLocation = [0, 0]
@@ -31,6 +31,9 @@ def driveToTarget(target):
                 #time to rescan
                 #stop the car
                 fc.stop()    
+                if (currLocation[0] == target[0] and currLocation[1] == target[1]):
+                    print("Final destination reached")
+                    return 
 
                 #0: update currLocation
                 if coords:
@@ -99,43 +102,52 @@ def runActions(actions):
             print("FORWARD")
 
 def turnRight():
-    fc.turn_right(50)
-    time.sleep(spinTime)
+    fc.turn_right(20)
+    time.sleep(rightTurnTime)
     fc.stop()
     
 
 def turnLeft():
-    fc.turn_left(50)
-    time.sleep(spinTime)
+    print("leftTurnTime: {0}".format(leftTurnTime))
+    fc.turn_left(20)
+    time.sleep(leftTurnTime)
     fc.stop()
 
 def goForward():
     fc.forward(10)
     time.sleep(forwardTime)
 
+
 # driveToTarget((100, 200))
 xdestination = 0
 ydestination = 0
-spinTime = 0
+leftTurnTime = 0
+rightTurnTime = 0
 forwardTime = 0
 def main(argv):
-    global xdestination, ydestination, spinTime, forwardTime
+    global xdestination, ydestination, leftTurnTime, rightTurnTime, forwardTime
     try:
-        opts, args = getopt.getopt(argv, "x:y:t:f:", ["xdest=","ydest=","sTime=", "fTime="])
+        opts, args = getopt.getopt(argv, "x:y:r:l:f:", ["xdest=","ydest=","rTime=","lTime=", "fTime="])
     except getopt.GetoptError:
         sys.exit(2)
     for opt,arg in opts:
+        print(opt, arg)
         if opt == '-x':
             xdestination = int(arg)
         elif opt == '-y':
             ydestination = int(arg)
-        elif opt =='-t':
-            spinTime = float(arg)
+        elif opt =='-r':
+            rightTurnTime = float(arg)
+        elif opt == '-l':
+            leftTurnTime = float(arg)
         elif opt == '-f':
             forwardTime = float(arg)
     print("destination:({0}, {1})".format(xdestination,ydestination))
-    print("spin time = {0}s".format(spinTime))
+    print("right time = {0}s".format(rightTurnTime))
+    print("right time = {0}s".format(leftTurnTime))
     print("forward time = {0}s".format(forwardTime))
+    # goForward()
+    # fc.stop()
     driveToTarget((xdestination, ydestination))
     # turnLeft()
 

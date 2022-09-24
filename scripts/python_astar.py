@@ -148,8 +148,8 @@ def actions(coords):
 def resetToNorth():
     global curr_dir
     new_dir = Direction.UP
-    curr_dir = Direction.UP
     turn_action = turn_Map[(new_dir.value - curr_dir.value + 360)% 360]
+    curr_dir = Direction.UP
     actionList = []
     if (turn_action == Direction.RIGHT):
         actionList.append("RIGHT")

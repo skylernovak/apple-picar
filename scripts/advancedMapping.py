@@ -7,7 +7,6 @@ import math
 import numpy as np
 import pandas as pd
 import python_astar as astar
-print("Advanced Mapping")
 
 # global variables
 us = fc.Ultrasonic(fc.Pin('D8'), fc.Pin('D9'))
@@ -16,6 +15,8 @@ npMap = np.zeros((100, 100))
 # Picar scans it's environment & plots to numpy Map
 # @param step: degrees it steps between readings of ultrasonic sensor
 def scanAndPlot(step = 18):
+    global npMap
+    npMap = np.zeros((100, 100))
     try:
         start = -90
         end = 90
@@ -42,10 +43,11 @@ def scanAndPlot(step = 18):
                         readings.append((angle, dist))
                         break
                 if (dist < 0): # if a distance was not found, assume no object is there
-                    readings.append((angle, 100))
+                    print("no obj at angle: {0}".format(angle))
+                    # readings.append((angle, 100))
             angle += step
-        # printReadings(readings)
-        # printXY_Readings(readings)
+        printReadings(readings)
+        printXY_Readings(readings)
 
         ### PLOT ###
         print("ploting objects to map...")
@@ -56,18 +58,21 @@ def scanAndPlot(step = 18):
 
         # get distance between points, if there is an object, plot into map
         readings = polarToCart(readings)
+        # print(readings)
         for i in range(0, len(readings)-1):
             # print("Euclidian Distance: " + str(euclidDist(readings[i], readings[i+1])))
             if (identifyObstacles(readings[i], readings[i+1])):
-                print("object detected")
-                plotNoDriveZone(readings[i], readings[i+1], 4)
+                # print("object detected")
+                plotNoDriveZone(readings[i], readings[i+1], 2)
+            else:
+                plotNoDriveZone(readings[i], readings[i], 1)
         csvMap = npMap.astype(int)
-        # print_npMap(csvMap)
-        # coords = astar.a_star_alg((50, 0), (65,10), 'manhattan', csvMap)
+        print_npMap(csvMap)
+        coords = astar.a_star_alg((50, 0), (65,10), 'manhattan', csvMap)
 
-        # #4: generate ordered list of actions
-        # actionQueue = astar.actions(coords)
-        # print(actionQueue)
+        #4: generate ordered list of actions
+        actionQueue = astar.actions(coords)
+        print(actionQueue)
 
         return csvMap
         
@@ -75,6 +80,36 @@ def scanAndPlot(step = 18):
         fc.stop()
         print("ERROR: " + str(e))
 
+#convert polar coordinates to cartesian coordinates
+def get_XY(polarCord):
+    theta = polarCord[0] + 90
+    r = polarCord[1]
+    x = round((r * math.cos(math.radians(theta)))/5) + 50
+    y = round((r * math.sin(math.radians(theta)))/5)
+    return (x, y)
+
+# calculate the distance between two points
+# if the number falls under an object detection threshold return true, else false
+def identifyObstacles(p1, p2):
+    objectDetectionThreshold = 4
+    if (euclidDist(p1, p2) <= objectDetectionThreshold):
+        return True
+    else:
+        return False
+
+# point 1 and point 2 are two opposite corners of a no drive zone. Fill zone with 1s
+def plotNoDriveZone(p1, p2, buffer):
+    x1 = p1[0]
+    y1 = p1[1]
+    x2 = p2[0]
+    y2 = p2[1]
+    minX = max(min(x1, x2) - buffer, 0)
+    maxX = min(max(x1, x2) + buffer, 99)
+    minY = max(min(y1, y2) - buffer, 0)
+    maxY = min(max(y1, y2) + buffer, 99)
+    for i in range(minX, maxX):
+        for j in range(minY, maxY):
+            npMap[i, j] = 1
 
 # print readings from Ultrasonic sensor & format them
 def printReadings(readings):
@@ -93,13 +128,7 @@ def print_npMap(csvMap):
     # np.savetxt("data/npMap.csv", csvMap, delimiter=",")
     pd.DataFrame(csvMap).to_csv("data/npMap.csv", header=None, index=None)
 
-#convert polar coordinates to cartesian coordinates
-def get_XY(polarCord):
-    theta = polarCord[0] + 90
-    r = polarCord[1]
-    x = round(r * math.cos(math.radians(theta))) + 50
-    y = round(r * math.sin(math.radians(theta)))
-    return (x, y)
+
 
 # plot (x, y) coordinates into map  --  depreciated?
 def plot_XY(cordinates, map):
@@ -107,32 +136,13 @@ def plot_XY(cordinates, map):
     y = cordinates[1]
     npMap[x, y] = 1
 
-# point 1 and point 2 are two opposite corners of a no drive zone. Fill zone with 1s
-def plotNoDriveZone(p1, p2, buffer):
-    x1 = p1[0]
-    y1 = p1[1]
-    x2 = p2[0]
-    y2 = p2[1]
-    minX = max(min(x1, x2) - buffer, 0)
-    maxX = min(max(x1, x2) + buffer, 99)
-    minY = max(min(y1, y2) - buffer, 0)
-    maxY = min(max(y1, y2) + buffer, 99)
-    for i in range(minX, maxX):
-        for j in range(minY, maxY):
-            npMap[i, j] = 1
+
     
 # return the distance between 2 points 
 def euclidDist(p1, p2):
     return round(math.sqrt((p2[0] - p1[0])**2+(p2[1] - p1[1])**2), 2)
 
-# calculate the distance between two points
-# if the number falls under an object detection threshold return true, else false
-def identifyObstacles(p1, p2):
-    objectDetectionThreshold = 20
-    if (euclidDist(p1, p2) <= objectDetectionThreshold):
-        return True;
-    else:
-        return False;
+
 
 # plot distance object onto map. Add buffer. fill with 1s
 def plotFarObject(obj):
@@ -148,4 +158,4 @@ def plotFarObject(obj):
 def polarToCart(readings):
     return[get_XY(i) for i in readings]
 
-# scanAndPlot()
+scanAndPlot()
